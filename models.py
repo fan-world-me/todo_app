@@ -1,7 +1,9 @@
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Integer, Text, func
+from __future__ import annotations
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 from datetime import datetime
+from typing import Optional, List
 
 class User(Base):
     __tablename__ = "users"
@@ -12,7 +14,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
 
-    todos: Mapped[list["Todo"]] = relationship("Todo", back_populates="owner", cascade="all, delete-orphan")
+    todos: Mapped[List[Todo]] = relationship("Todo", back_populates="owner", cascade="all, delete-orphan")
 
 
 class Todo(Base):
@@ -20,11 +22,11 @@ class Todo(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(200))
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
-    priority: Mapped[str] = mapped_column(String(10), default="medium")  # low/medium/high
+    priority: Mapped[str] = mapped_column(String(10), default="medium")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
-    due_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    due_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
-    owner: Mapped["User"] = relationship("User", back_populates="todos")
+    owner: Mapped[User] = relationship("User", back_populates="todos")
