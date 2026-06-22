@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✦ Cosmic Todo ✦</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- AUTH SECTION -->
+  <div id="auth-section">
+    <div class="card" style="text-align:center; margin-bottom:1.5rem;">
+      <h1 style="color:var(--cyan-5);font-size:1.8rem;letter-spacing:0.1em;animation:glowPulse 3s infinite;">✦ COSMIC TODO ✦</h1>
+      <p style="color:var(--text-dim);font-size:0.65rem;margin-top:0.4rem;">// написано за один вечер. да, весь.</p>
+    </div>
+    <div class="card">
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="showTab('login')">[ LOGIN ]</button>
+        <button class="tab-btn" onclick="showTab('register')">[ REGISTER ]</button>
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>// username</label>
+          <input type="text" id="login-username" placeholder="enter username" required>
+        </div>
+        <div class="form-group">
+          <label>// password</label>
+          <input type="password" id="login-password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary">[ ENTER SYSTEM ]</button>
+      </form>
+
+      <form id="register-form" style="display:none" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label>// username</label>
+          <input type="text" id="reg-username" placeholder="your codename" required>
+        </div>
+        <div class="form-group">
+          <label>// email</label>
+          <input type="email" id="reg-email" placeholder="user@domain.com" required>
+        </div>
+        <div class="form-group">
+          <label>// password</label>
+          <input type="password" id="reg-password" placeholder="••••••••" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary">[ CREATE ACCOUNT ]</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN SECTION -->
+  <div id="main-section" style="display:none">
+
+    <div class="site-header">
+      <h1>✦ COSMIC TODO ✦</h1>
+      <p>// your tasks, your universe</p>
+      <div class="user-info">
+        <span id="username-display"></span>
+        <button class="btn btn-logout" onclick="logout()">[ LOGOUT ]</button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-chip"><span id="stat-total">0</span> total</div>
+      <div class="stat-chip"><span id="stat-done">0</span> done</div>
+      <div class="stat-chip"><span id="stat-pending">0</span> pending</div>
+      <div class="stat-chip"><span id="stat-high">0</span> high priority</div>
+    </div>
+
+    <!-- ADD TODO -->
+    <div class="card">
+      <div style="font-size:0.7rem;color:var(--cyan-2);margin-bottom:1rem;letter-spacing:0.06em;">// new task</div>
+      <form class="add-form" onsubmit="handleCreate(event)">
+        <div class="form-group" style="margin:0">
+          <input type="text" id="new-title" placeholder="task title..." required>
+        </div>
+        <div class="form-group" style="margin:0">
+          <textarea id="new-desc" placeholder="description (optional)..." rows="2"></textarea>
+        </div>
+        <div class="add-form-row">
+          <div class="form-group" style="margin:0">
+            <label>// priority</label>
+            <select id="new-priority">
+              <option value="low">low</option>
+              <option value="medium" selected>medium</option>
+              <option value="high">high</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>// due date</label>
+            <input type="datetime-local" id="new-due">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">[ ADD TASK ]</button>
+      </form>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-row">
+      <button class="filter-badge active" onclick="setFilter('all', this)">all</button>
+      <button class="filter-badge" onclick="setFilter('pending', this)">pending</button>
+      <button class="filter-badge" onclick="setFilter('done', this)">done</button>
+      <button class="filter-badge" onclick="setFilter('high', this)">⚡ high</button>
+    </div>
+
+    <!-- TODO LIST -->
+    <div id="todo-list">
+      <div class="empty-state"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-backdrop" id="edit-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <h3>// edit task</h3>
+    <form onsubmit="handleEdit(event)">
+      <input type="hidden" id="edit-id">
+      <div class="form-group">
+        <label>// title</label>
+        <input type="text" id="edit-title" required>
+      </div>
+      <div class="form-group">
+        <label>// description</label>
+        <textarea id="edit-desc" rows="3"></textarea>
+      </div>
+      <div class="add-form-row">
+        <div class="form-group" style="margin:0">
+          <label>// priority</label>
+          <select id="edit-priority">
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>// due date</label>
+          <input type="datetime-local" id="edit-due">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">[ SAVE ]</button>
+        <button type="button" class="btn btn-sm" onclick="document.getElementById('edit-modal').classList.remove('open')">[ CANCEL ]</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let token = localStorage.getItem('token');
+let currentUser = localStorage.getItem('username');
+let allTodos = [];
+let activeFilter = 'all';
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+if (token) showMain();
+
+// ── Auth helpers ───────────────────────────────────────────────────────────
+function showTab(tab) {
+  document.getElementById('login-form').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i) =>
+    b.classList.toggle('active', (tab==='login'?0:1)===i));
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const form = new FormData();
+  form.append('username', document.getElementById('login-username').value);
+  form.append('password', document.getElementById('login-password').value);
+  const r = await fetch('/auth/token', { method: 'POST', body: form });
+  const d = await r.json();
+  if (!r.ok) return toast(d.detail || 'Login failed', true);
+  token = d.access_token;
+  currentUser = document.getElementById('login-username').value;
+  localStorage.setItem('token', token);
+  localStorage.setItem('username', currentUser);
+  showMain();
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const r = await api('/auth/register', 'POST', {
+    username: document.getElementById('reg-username').value,
+    email:    document.getElementById('reg-email').value,
+    password: document.getElementById('reg-password').value,
+  });
+  if (r._err) return;
+  toast('Account created! Please login.');
+  showTab('login');
+  document.getElementById('reg-username').value = '';
+  document.getElementById('reg-email').value = '';
+  document.getElementById('reg-password').value = '';
+}
+
+function logout() {
+  token = null; currentUser = null;
+  localStorage.removeItem('token'); localStorage.removeItem('username');
+  document.getElementById('main-section').style.display  = 'none';
+  document.getElementById('auth-section').style.display  = '';
+}
+
+function showMain() {
+  document.getElementById('auth-section').style.display = 'none';
+  document.getElementById('main-section').style.display = '';
+  document.getElementById('username-display').textContent = '// ' + currentUser;
+  loadTodos();
+}
+
+// ── API ────────────────────────────────────────────────────────────────────
+async function api(url, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(token ? {'Authorization': 'Bearer ' + token} : {}) },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (r.status === 401) { logout(); return { _err: true }; }
+  const d = r.status === 204 ? null : await r.json();
+  if (!r.ok) { toast((d && d.detail) || 'Error', true); return { _err: true }; }
+  return d;
+}
+
+// ── Todos ──────────────────────────────────────────────────────────────────
+async function loadTodos() {
+  const data = await api('/todos/');
+  if (data && !data._err) {
+    allTodos = data;
+    renderTodos();
+    updateStats();
+  }
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-badge').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTodos();
+}
+
+function filterTodos() {
+  if (activeFilter === 'done')    return allTodos.filter(t => t.completed);
+  if (activeFilter === 'pending') return allTodos.filter(t => !t.completed);
+  if (activeFilter === 'high')    return allTodos.filter(t => t.priority === 'high');
+  return allTodos;
+}
+
+function renderTodos() {
+  const list = filterTodos();
+  const el = document.getElementById('todo-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✦</div><div>no tasks here. void is peaceful.</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(t => todoHTML(t)).join('');
+}
+
+function todoHTML(t) {
+  const overdue = t.due_date && !t.completed && new Date(t.due_date) < new Date();
+  const dueStr  = t.due_date ? new Date(t.due_date).toLocaleString('ru', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+  return `
+  <div class="todo-item priority-${t.priority} ${t.completed ? 'completed-item' : ''}" id="todo-${t.id}">
+    <input type="checkbox" class="todo-check" ${t.completed ? 'checked' : ''}
+      onchange="toggleTodo(${t.id}, this.checked)">
+    <div class="todo-body">
+      <div class="todo-title">${esc(t.title)}</div>
+      ${t.description ? `<div class="todo-desc">${esc(t.description)}</div>` : ''}
+      <div class="todo-meta">
+        <span class="badge badge-${t.priority}">${t.priority}</span>
+        ${dueStr ? `<span class="todo-date ${overdue?'overdue':''}">${overdue?'⚠ ':''}${dueStr}</span>` : ''}
+      </div>
+    </div>
+    <div class="todo-actions">
+      <button class="btn btn-sm" onclick="openEdit(${t.id})" title="edit">✎</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteTodo(${t.id})" title="delete">✕</button>
+    </div>
+  </div>`;
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent   = allTodos.length;
+  document.getElementById('stat-done').textContent    = allTodos.filter(t=>t.completed).length;
+  document.getElementById('stat-pending').textContent = allTodos.filter(t=>!t.completed).length;
+  document.getElementById('stat-high').textContent    = allTodos.filter(t=>t.priority==='high'&&!t.completed).length;
+}
+
+async function handleCreate(e) {
+  e.preventDefault();
+  const dueRaw = document.getElementById('new-due').value;
+  const body = {
+    title:       document.getElementById('new-title').value,
+    description: document.getElementById('new-desc').value || null,
+    priority:    document.getElementById('new-priority').value,
+    due_date:    dueRaw ? new Date(dueRaw).toISOString() : null,
+  };
+  const d = await api('/todos/', 'POST', body);
+  if (d && !d._err) {
+    allTodos.unshift(d);
+    e.target.reset();
+    renderTodos(); updateStats();
+    toast('Task added!');
+  }
+}
+
+async function toggleTodo(id, completed) {
+  const d = await api(`/todos/${id}`, 'PATCH', { completed });
+  if (d && !d._err) {
+    const idx = allTodos.findIndex(t => t.id === id);
+    if (idx !== -1) allTodos[idx] = d;
+    renderTodos(); updateStats();
+  }
+}
+
+async function deleteTodo(id) {
+  await api(`/todos/${id}`, 'DELETE');
+  allTodos = allTodos.filter(t => t.id !== id);
+  renderTodos(); updateStats();
+  toast('Task deleted.');
+}
+
+function openEdit(id) {
+  const t = allTodos.find(t => t.id === id);
+  if (!t) return;
+  document.getElementById('edit-id').value    = t.id;
+  document.getElementById('edit-title').value = t.title;
+  document.getElementById('edit-desc').value  = t.description || '';
+  document.getElementById('edit-priority').value = t.priority;
+  document.getElementById('edit-due').value   = t.due_date ? t.due_date.slice(0,16) : '';
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+async function handleEdit(e) {
+  e.preventDefault();
+  const id = parseInt(document.getElementById('edit-id').value);
+  const dueRaw = document.getElementById('edit-due').value;
+  const body = {
+    title:       document.getElementById('edit-title').value,
+    description: document.getElementById('edit-desc').value || null,
+    priority:    document.getElementById('edit-priority').value,
+    due_date:    dueRaw ? new Date(dueRaw).toISOString() : null,
+  };
+  const d = await api(`/todos/${id}`, 'PATCH', body);
+  if (d && !d._err) {
+    const idx = allTodos.findIndex(t => t.id === id);
+    if (idx !== -1) allTodos[idx] = d;
+    document.getElementById('edit-modal').classList.remove('open');
+    renderTodos(); updateStats();
+    toast('Task updated!');
+  }
+}
+
+function closeModal(e) {
+  if (e.target.id === 'edit-modal') e.target.classList.remove('open');
+}
+
+// ── Utils ──────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function toast(msg, err = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (err ? ' error' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 2800);
+}
+</script>
+</body>
+</html>
