@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Monocraft";
-  src: url("C:/Windows/Fonts/Monocraft Regular.ttf");
+  src: url("/static/Monocraft.ttc") format("truetype");
 }
 
 /* ═══════════ VARIABLES ═══════════ */
